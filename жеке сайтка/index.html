@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <title>Уақытты Тиімді Бөлу</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <h2>📊 TIME APP</h2>
+        <ul>
+            <li onclick="showPage('home')">Басты бет</li>
+            <li onclick="showPage('tasks')">Тапсырмалар</li>
+            <li onclick="showPage('contact')">Байланыс</li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <section id="home" class="page active">
+            <h1 id="welcome">Қайырлы күн!</h1>
+            <p id="clock" class="digital-clock"></p>
+            <div class="card">
+                <h3>Тайм-менеджмент</h3>
+                <p>Бұл платформа сізге уақытты үнемдеуге көмектеседі.</p>
+            </div>
+        </section>
+
+        <section id="tasks" class="page">
+            <h2>Тапсырма жоспарлаушы</h2>
+            <div class="input-box">
+                <input type="text" id="taskInput" placeholder="Жаңа тапсырма жазыңыз...">
+                <select id="priority">
+                    <option value="Маңызды">Маңызды 🔥</option>
+                    <option value="Орташа">Орташа ⚡</option>
+                    <option value="Төмен">Төмен 🌱</option>
+                </select>
+                <button class="add-btn" onclick="addTask()">Қосу</button>
+            </div>
+            <div id="taskList" class="task-grid">
+                </div>
+        </section>
+
+        <section id="contact" class="page">
+            <h2>Кері байланыс</h2>
+            <div class="card">
+                <form id="contactForm">
+                    <label>Атыңыз:</label>
+                    <input type="text" id="userName" placeholder="Атыңызды жазыңыз" required>
+                    
+                    <label>Gmail поштаңыз:</label>
+                    <input type="email" id="userEmail" placeholder="example@gmail.com" required>
+                    
+                    <label>Комментарий:</label>
+                    <textarea id="userComment" rows="5" placeholder="Пікіріңізді қалдырыңыз..."></textarea>
+                    
+                    <button type="submit" class="send-btn">Жіберу</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

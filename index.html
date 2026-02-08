@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urbansolve - Қалалық басқару платформасы</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet Maps CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* --- 1. DESIGN SYSTEM --- */
+        :root {
+            --primary: #0F62FE;
+            --primary-dark: #0043CE;
+            --secondary: #393939;
+            --accent: #FFC107;
+            --bg-body: #F2F4F8;
+            --bg-card: #FFFFFF;
+            --bg-glass: rgba(255, 255, 255, 0.95);
+            --text-main: #161616;
+            --text-secondary: #525252;
+            --nav-height: 80px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+            --success: #198038;
+            --danger: #DA1E28;
+            --warning: #F1C21B;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            padding-top: var(--nav-height); 
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, h4, h5 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; line-height: 1.2; }
+        img { max-width: 100%; height: auto; }
+
+        /* Container */
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; width: 100%; }
+        .hidden { display: none !important; }
+
+        /* --- COMPONENTS --- */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; font-weight: 600; font-size: 15px; border-radius: 6px;
+            transition: all 0.2s ease; cursor: pointer; border: none; outline: none;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: white; color: var(--text-main); border: 1px solid #E0E0E0; }
+        .btn-secondary:hover { background: #f4f4f4; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-sm { padding: 8px 16px; font-size: 13px; }
+        .btn-full { width: 100%; }
+
+        .form-input {
+            width: 100%; padding: 12px 16px;
+            border: 1px solid #E0E0E0; border-radius: 6px; font-size: 15px; outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: var(--primary); }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+        .badge-blue { background: #E5F6FF; color: #00539A; }
+        .badge-green { background: #DEFBE6; color: #0E6027; }
+        .badge-yellow { background: #FFF8E1; color: #B78505; }
+        .badge-gray { background: #F4F4F4; color: #525252; }
+        .badge-red { background: #FFF1F0; color: #DA1E28; }
+
+        /* --- HEADER & NAV --- */
+        .navbar {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            height: var(--nav-height);
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+        }
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; height: 100%; }
+        
+        .logo { font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .logo i { color: var(--primary); font-size: 28px; }
+        
+        .nav-links { display: flex; gap: 32px; list-style: none; }
+        .nav-links a { font-weight: 500; font-size: 15px; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
+        .nav-links a.active { color: var(--primary); }
+
+        .auth-block { display: flex; align-items: center; gap: 15px; }
+        .user-info { text-align: right; line-height: 1.2; }
+        
+        .menu-toggle { display: none; font-size: 24px; cursor: pointer; color: var(--text-main); }
+
+        /* --- HERO SECTION --- */
+        .hero-section {
+            background: white; border-radius: var(--radius-lg);
+            display: flex; overflow: hidden; box-shadow: var(--shadow-md);
+            margin-bottom: 60px; min-height: 500px;
+        }
+        .hero-content { flex: 1; padding: 60px; display: flex; flex-direction: column; justify-content: center; }
+        .hero-title { font-size: 48px; margin-bottom: 24px; }
+        .hero-title span { color: var(--primary); }
+        .hero-desc { font-size: 18px; color: var(--text-secondary); margin-bottom: 40px; max-width: 500px; }
+        .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+        
+        .hero-image { flex: 1; position: relative; min-height: 300px; }
+        .hero-image img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- GRIDS & CARDS --- */
+        .grid-3 { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 32px; 
+        }
+        
+        .card {
+            background: white; border-radius: var(--radius-md); overflow: hidden;
+            box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
+            transition: transform 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        
+        .card-img-wrap { height: 220px; position: relative; }
+        .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .card-badge { position: absolute; top: 16px; left: 16px; background: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 12px; }
+        
+        .card-body { padding: 24px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-meta { display: flex; gap: 15px; margin-bottom: 12px; color: var(--text-secondary); font-size: 13px; }
+        .card-title { font-size: 20px; margin-bottom: 12px; }
+        .card-desc { color: var(--text-secondary); font-size: 15px; margin-bottom: 24px; flex-grow: 1; }
+        
+        .progress-container { background: #E0E0E0; height: 6px; border-radius: 3px; margin-bottom: 20px; }
+        .progress-bar { height: 100%; background: var(--primary); border-radius: 3px; transition: width 0.5s ease; }
+
+        /* --- AUTH & FORMS --- */
+        .auth-container {
+            max-width: 420px; margin: 40px auto;
+            background: white; padding: 40px;
+            border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
+        }
+        .auth-title { text-align: center; margin-bottom: 10px; font-size: 26px; }
+        .auth-subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--text-secondary); }
+        .auth-link { text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-secondary); }
+        .auth-link a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: none; }
+        .auth-link a:hover { text-decoration: underline; }
+
+        .demo-hint {
+            background: #F2F4F8; padding: 15px; border-radius: 8px; 
+            font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* --- DASHBOARD --- */
+        .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 40px; }
+        .stat-card {
+            background: white; padding: 20px; border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px;
+        }
+        .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .bg-blue-light { background: #E5F6FF; color: #00539A; }
+        .bg-yellow-light { background: #FFF8E1; color: #B78505; }
+        .bg-red-light { background: #FFF1F0; color: #DA1E28; }
+        .bg-green-light { background: #DEFBE6; color: #0E6027; }
+
+        .table-responsive { width: 100%; overflow-x: auto; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; min-width: 600px; }
+        .data-table th, .data-table td { padding: 16px 20px; border-bottom: 1px solid #F0F0F0; text-align: left; }
+        .data-table th { background: #F9F9F9; font-weight: 600; font-size: 13px; color: var(--text-secondary); }
+
+        /* --- MAP --- */
+        #map-area { width: 100%; height: 600px; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); z-index: 1; }
+
+        /* --- FOOTER --- */
+        .footer { background: #161616; color: #F4F4F4; padding: 60px 0 30px; margin-top: auto; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 40px; margin-bottom: 40px; }
+        .footer-links a { display: block; margin-bottom: 10px; color: #A8A8A8; }
+        .social-icons { display: flex; gap: 16px; }
+        .social-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: 0.2s; }
+        .social-icon:hover { background: var(--primary); }
+
+        .error-message {
+        color: #ff4d4f;
+        font-size: 14px;
+        margin-top: 10px;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            .hero-title { font-size: 36px; }
+            .dash-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            :root { --nav-height: 70px; }
+            .container { padding: 0 16px; }
+            .menu-toggle { display: block; }
+            .nav-links {
+                position: fixed; top: var(--nav-height); left: 0; width: 100%;
+                background: white; flex-direction: column; padding: 20px;
+                gap: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+                display: none;
+            }
+            .nav-links.active { display: flex; }
+            .hero-section { flex-direction: column-reverse; min-height: auto; }
+            .hero-image { height: 250px; flex: none; }
+            .grid-3, .dash-grid, .footer-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- НАВИГАЦИЯ -->
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <div class="logo" onclick="navigate('home')">
+                <i class="fas fa-layer-group"></i>
+                <span style="font-size: 20px;">URBANSOLVE</span>
+            </div>
+            
+            <div class="menu-toggle" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+
+            <ul class="nav-links" id="nav-links">
+                <li><a onclick="navigate('home')" id="nav-home" class="active">Басты бет</a></li>
+                <li><a onclick="navigate('projects')" id="nav-projects">Жобалар</a></li>
+                <li><a onclick="navigate('issues')" id="nav-issues">Мәселелер</a></li>
+                <li><a onclick="navigate('map')" id="nav-map">Карта</a></li>
+                
+                <li class="hidden" data-role="admin"><a onclick="navigate('admin-panel')">Басшы панелі</a></li>
+                <li class="hidden" data-role="volunteer"><a onclick="navigate('volunteer-panel')">Волонтер</a></li>
+                <li class="hidden" data-role="resident"><a onclick="navigate('resident-panel')">Кабинет</a></li>
+            </ul>
+
+            <div class="auth-block">
+                <div id="auth-guest">
+                    <button class="btn btn-primary btn-sm" onclick="navigate('login')">
+                        Кіру
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="navigate('register')">
+                        Тіркелу
+                    </button>
+                </div>
+                <div id="auth-user" class="user-menu hidden">
+                    <div class="user-info">
+                        <span class="user-name" id="user-name-display" style="display:block; font-weight:700;">Аты Жөні</span>
+                        <span class="user-role" id="user-role-display" style="font-size:11px; color:var(--text-secondary);">Рөлі</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="logout()" style="margin-left: 10px;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="container" style="padding-bottom: 60px;">
+
+        <!-- 1. HOME VIEW -->
+        <section id="home" class="view">
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h1 class="hero-title">Қала мәселелерін <br><span>бірге шешейік</span></h1>
+                    <p class="hero-desc">Тұрғындар, әкімдік және волонтерлер бір платформада. Тіркеліп, өз қалаңызды жайлы әрі қауіпсіз етуге үлес қосыңыз.</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary" onclick="navigate('register')">
+                            <i class="fas fa-user-plus"></i> Тіркелу
+                        </button>
+                        <button class="btn btn-secondary" onclick="navigate('projects')">
+                            <i class="fas fa-eye"></i> Жобаларды көру
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="hero-overlay"></div>
+                    <img src="https://www.kti.kz/wp-content/uploads/2022/11/755493935951997.jpeg" alt="City">
+                </div>
+            </div>
+
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Соңғы жобалар</h2>
+                    <p style="color: var(--text-secondary)">Қала бойынша атқарылып жатқан жұмыстар</p>
+                </div>
+            </div>
+            <div class="grid-3" id="home-projects-grid" style="margin-top: 20px;"></div>
+        </section>
+
+        <!-- 2. LOGIN PAGE -->
+        <section id="login" class="view hidden">
+            <div class="auth-container">
+                <h2 class="auth-title">Кіру</h2>
+                <p class="auth-subtitle">Платформаға қош келдіңіз</p>
+                
+                <div class="demo-hint">
+                    <strong>Demo аккаунттар (пароль кез келген):</strong><br>
+                    • admin@test.com (Басшы)<br>
+                    • vol@test.com (Волонтер)<br>
+                    • user@test.com (Тұрғын)
+                </div>
+
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="login-email" class="form-input" placeholder="mail@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Құпия сөз</label>
+                        <input type="password" id="login-password" class="form-input" placeholder="******" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">Кіру</button>
+                    <p id="login-error" class="error-message"></p>
+                </form>
+
+                <div class="auth-link">
+                    Аккаунтыңыз жоқ па? <a onclick="navigate('register')">Тіркелу</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. REGISTRATION PAGE -->
+        <section id="register" class="view hidden">
+            <div class="auth-container">
+                <h2 class="auth-title">Тіркелу</h2>
+                <p class="auth-subtitle">Жаңа аккаунт жасау</p>
+
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label class="form-label">Аты-жөні</label>
+                        <input type="text" id="reg-name" class="form-input" placeholder="Мысалы: Асқар Арманұлы" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="reg-email" class="form-input" placeholder="mail@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Рөліңізді таңдаңыз</label>
+                        <select id="reg-role" class="form-input" required>
+                            <option value="" disabled selected>Таңдаңыз...</option>
+                            <option value="resident">🏢 Тұрғын</option>
+                            <option value="volunteer">🤝 Волонтер</option>
+                            <option value="admin">💼 Басшы (Админ)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Құпия сөз</label>
+                        <input type="password" id="reg-password" class="form-input" placeholder="******" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">Тіркелу</button>
+                </form>
+
+                <div class="auth-link">
+                    Аккаунтыңыз бар ма? <a onclick="navigate('login')">Кіру</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. PROJECTS PAGE -->
+        <section id="projects" class="view hidden">
+            <div class="section-header" style="display:flex; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                <h2 class="section-title">Қалалық жобалар</h2>
+                <!-- ФУНКЦИОНАЛ ҚОСЫЛДЫ: onchange -->
+                <select class="form-input" id="project-filter" onchange="filterProjects()" style="width: auto; min-width: 200px;">
+                    <option value="all">Барлық аудандар</option>
+                    <option value="Алмалы ауданы">Алмалы ауданы</option>
+                    <option value="Медеу ауданы">Медеу ауданы</option>
+                    <option value="Бостандық ауданы">Бостандық ауданы</option>
+                </select>
+            </div>
+            <div class="grid-3" id="projects-grid"></div>
+        </section>
+
+        <!-- 5. PROJECT DETAIL -->
+        <section id="project-detail" class="view hidden">
+            <button class="btn btn-secondary btn-sm" onclick="navigate('projects')" style="margin-bottom: 24px;">
+                <i class="fas fa-arrow-left"></i> Артқа
+            </button>
+            <div id="project-detail-content" style="background: white; border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm);"></div>
+        </section>
+
+        <!-- 6. ISSUES PAGE -->
+        <section id="issues" class="view hidden">
+            <div class="section-header" style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <h2 class="section-title">Мәселелер тізімі</h2>
+                <!-- ФУНКЦИОНАЛ ҚОСЫЛДЫ: prompt арқылы қосу -->
+                <button class="btn btn-primary" onclick="addNewIssue()">
+                    <i class="fas fa-plus"></i> Жаңа мәселе
+                </button>
+            </div>
+            <div class="grid-3" id="issues-grid"></div>
+        </section>
+
+        <!-- 7. MAP PAGE -->
+        <section id="map" class="view hidden">
+            <div style="margin-bottom: 24px;">
+                <h2 class="section-title">Интерактивті карта</h2>
+                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                    <span class="badge badge-red"><i class="fas fa-map-marker-alt" style="color: var(--danger)"></i> Мәселелер</span>
+                    <span class="badge badge-blue"><i class="fas fa-map-marker-alt" style="color: var(--primary)"></i> Жобалар</span>
+                </div>
+            </div>
+            <div id="map-area"></div>
+        </section>
+
+        <!-- 8. ADMIN PANEL -->
+        <section id="admin-panel" class="view hidden">
+            <div class="section-header" style="margin-bottom:20px; display:flex; justify-content:space-between;">
+                <h2 class="section-title">Басшы панелі</h2>
+                <span class="badge badge-blue">Администратор</span>
+            </div>
+
+            <div class="dash-grid">
+                <div class="stat-card">
+                    <div class="stat-icon bg-blue-light"><i class="fas fa-folder-open"></i></div>
+                    <div class="stat-info"><h3>12</h3><p>Жобалар</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-yellow-light"><i class="fas fa-coins"></i></div>
+                    <div class="stat-info"><h3>450M</h3><p>Бюджет</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-red-light"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="stat-info"><h3>34</h3><p>Мәселе</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-green-light"><i class="fas fa-check-double"></i></div>
+                    <div class="stat-info"><h3>89</h3><p>Шешілді</p></div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 20px;">Бюджетті мақұлдау</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Жоба атауы</th>
+                            <th>Аудан</th>
+                            <th>Сома</th>
+                            <th>Статус</th>
+                            <th>Әрекет</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body">
+                        <!-- JS арқылы толтырылады -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 9. VOLUNTEER PANEL -->
+        <section id="volunteer-panel" class="view hidden">
+            <div class="section-header" style="margin-bottom:20px;">
+                <h2 class="section-title">Волонтер кабинеті</h2>
+                <div class="badge badge-blue" style="margin-top:10px;">
+                    <i class="fas fa-star" style="color: gold"></i> 1,250 ұпай жиналды
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="card" style="border-left: 4px solid var(--success);">
+                    <div class="card-body">
+                        <div class="card-meta"><i class="far fa-calendar-alt"></i> 15 Сәуір • 09:00</div>
+                        <h3 class="card-title">🌳 Сенбілік</h3>
+                        <p class="card-desc">Аумақты қоқыстан тазарту және ағаш түбін қопарту жұмыстары.</p>
+                        <button class="btn btn-sm btn-success btn-full" onclick="alert('Сіз іс-шараға тіркелдіңіз!')">Қатысу (+50 ұпай)</button>
+                    </div>
+                </div>
+                <div class="card" style="border-left: 4px solid var(--warning);">
+                    <div class="card-body">
+                        <div class="card-meta"><i class="far fa-calendar-alt"></i> 20 Сәуір • 14:00</div>
+                        <h3 class="card-title">👵 Қарттарға көмек</h3>
+                        <p class="card-desc">Азық-түлік жеткізу және үй шаруасына көмектесу.</p>
+                        <button class="btn btn-sm btn-success btn-full" onclick="alert('Сіз іс-шараға тіркелдіңіз!')">Қатысу (+30 ұпай)</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. RESIDENT PANEL -->
+        <section id="resident-panel" class="view hidden">
+            <h2 class="section-title" style="margin-bottom:20px;">Жеке кабинет</h2>
+            <div style="background: white; border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-sm); display:flex; flex-direction:column; gap:20px;">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="width: 80px; height: 80px; background: #F2F4F8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--text-secondary);">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <h3 id="res-panel-name">Құрметті Тұрғын</h3>
+                        <p style="color: var(--text-secondary); font-size: 14px;">ID: #82931 • Алмалы ауданы</p>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 10px;">Менің белсенділігім</h4>
+                <ul id="resident-activity" style="border: 1px solid #E0E0E0; border-radius: 8px; overflow: hidden;">
+                    <li style="padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size:14px;"><i class="fas fa-vote-yea" style="color: var(--primary); margin-right: 10px;"></i> Қоқыс мәселесіне дауыс</span>
+                        <span style="font-size: 12px; color: #888;">Кеше</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <span class="footer-logo"><i class="fas fa-layer-group"></i> URBANSOLVE</span>
+                    <p class="footer-desc" style="font-size: 13px; margin-top: 10px; color:#A8A8A8;">
+                        Қаланы дамытуға арналған инновациялық цифрлық платформа.
+                    </p>
+                </div>
+                <div>
+                    <h4 style="color:white; margin-bottom:16px;">Сілтемелер</h4>
+                    <ul class="footer-links">
+                        <li><a onclick="navigate('home')">Басты бет</a></li>
+                        <li><a onclick="navigate('projects')">Жобалар</a></li>
+                        <li><a onclick="navigate('map')">Карта</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color:white; margin-bottom:16px;">Байланыс</h4>
+                    <ul class="footer-links">
+                        <li>+7 (727) 333-22-11</li>
+                        <li>info@urbansolve.kz</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color:white; margin-bottom:16px;">Желілер</h4>
+                    <div class="social-icons">
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; font-size: 12px; color: #6F6F6F; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                &copy; 2025 Urbansolve Platform.
+            </div>
+        </div>
+    </footer>
+
+    <!-- LOGIC SCRIPT -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // --- DATA STORE ---
+        const db = {
+            projects: [
+                { 
+                    id: 1, 
+                    title: "Smart Almaty: Ақылды бағдаршамдар", 
+                    district: "Медеу ауданы",
+                    budget: "120 млн ₸",
+                    desc: "Көлік кептелісін 25%-ға азайту үшін жасанды интеллект жүйесін енгізу.",
+                    fullText: "Бұл жоба қаланың басты көшелеріндегі 50 қиылысқа ақылды датчиктер орнатуды көздейді. Жүйе көлік ағынын талдап, жасыл түсті автоматты түрде реттейді.",
+                    status: "Орындалуда", 
+                    progress: 65,
+                    lat: 43.2389, lng: 76.8897,
+                    img: "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=600&q=80" 
+                },
+                { 
+                    id: 2, 
+                    title: "Жасыл қала - 1000 жаңа ағаш", 
+                    district: "Алмалы ауданы",
+                    budget: "45 млн ₸",
+                    desc: "Ауа сапасын жақсарту және саябақтарды көгалдандыру.",
+                    fullText: "Алмалы ауданының ескі скверлерін жаңарту және жаңадан 1000 түп қарағаш, емен және шырша отырғызу.",
+                    status: "Жоспарлануда", 
+                    progress: 15,
+                    lat: 43.2565, lng: 76.9284,
+                    img: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80" 
+                },
+                { 
+                    id: 3, 
+                    title: "Веложолдар желісін кеңейту", 
+                    district: "Бостандық ауданы",
+                    budget: "80 млн ₸",
+                    desc: "Тимирязев көшесі бойымен жаңа қауіпсіз веложол салу.",
+                    fullText: "Экологиялық транспортты дамыту үшін 15 шақырымдық үздіксіз веложол салу.",
+                    status: "Аяқталды", 
+                    progress: 100,
+                    lat: 43.2220, lng: 76.9152,
+                    img: "https://images.unsplash.com/photo-1474962558142-9ca83af74bb7?auto=format&fit=crop&w=600&q=80" 
+                }
+            ],
+            issues: [
+                {
+      id: 1,
+      title: "Тестовая проблема",
+      description: "Временный mock для фронта",
+      status: "new"
+    }
+            ],
+            // Басшы панеліндегі кестеге арналған деректер
+            adminRequests: [
+                { id: 1, title: "Балалар алаңын жаңарту", district: "Түрксіб", amount: "12 млн ₸", status: "pending" },
+                { id: 2, title: "Көше жарықтандыру", district: "Бостандық", amount: "45 млн ₸", status: "approved" }
+            ]
+        };
+
+        let mapInstance = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProjects();
+            loadProblemsFromBackend();
+            renderAdminTable();
+            
+            // Check auth on load
+            const savedRole = localStorage.getItem('userRole');
+            if(savedRole) updateAuthUI();
+        });
+
+        // Mobile Menu
+        function toggleMenu() {
+            document.getElementById('nav-links').classList.toggle('active');
+        }
+
+        // Navigation
+        function navigate(pageId) {
+            document.getElementById('nav-links').classList.remove('active');
+
+            // Protected Routes Check
+            const role = localStorage.getItem('userRole');
+            if ((pageId === 'admin-panel' && role !== 'admin') ||
+                (pageId === 'volunteer-panel' && role !== 'volunteer') ||
+                (pageId === 'resident-panel' && role !== 'resident')) {
+                // If trying to access protected route without login
+                if(!role) return navigate('login'); 
+                return alert('Сіздің рөліңізге бұл бет қолжетімсіз!');
+            }
+
+            // Hide all views
+            document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+            
+            // Show target view
+            const target = document.getElementById(pageId);
+            if(target) target.classList.remove('hidden');
+            
+            // Update Active Link
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+            const activeLink = document.getElementById('nav-' + pageId);
+            if(activeLink) activeLink.classList.add('active');
+
+            if(pageId === 'map') setTimeout(initMap, 100);
+            window.scrollTo(0, 0);
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderProjects(filterDistrict = 'all') {
+            const container = document.getElementById('projects-grid');
+            const homeContainer = document.getElementById('home-projects-grid');
+            
+            // Фильтрация
+            const filtered = filterDistrict === 'all' 
+                ? db.projects 
+                : db.projects.filter(p => p.district === filterDistrict);
+
+            const html = filtered.length ? filtered.map(p => `
+                <div class="card">
+                    <div class="card-img-wrap">
+                        <img src="${p.img}" alt="${p.title}">
+                        <div class="card-badge">${p.status}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-meta">
+                            <span><i class="fas fa-map-marker-alt"></i> ${p.district}</span>
+                            <span><i class="fas fa-coins"></i> ${p.budget}</span>
+                        </div>
+                        <h3 class="card-title">${p.title}</h3>
+                        <p class="card-desc">${p.desc}</p>
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: ${p.progress}%"></div>
+                        </div>
+                        <button class="btn btn-secondary btn-full" onclick="showProjectDetails(${p.id})">
+                            Толығырақ
+                        </button>
+                    </div>
+                </div>
+            `).join('') : '<p style="grid-column: 1/-1; text-align:center; color:#666;">Бұл ауданда жобалар табылмады.</p>';
+            
+            if(container) container.innerHTML = html;
+            if(homeContainer) homeContainer.innerHTML = html;
+        }
+
+        // FUNCTIONAL: Filter Projects
+        function filterProjects() {
+            const val = document.getElementById('project-filter').value;
+            renderProjects(val);
+        }
+
+        function showProjectDetails(id) {
+            const p = db.projects.find(x => x.id === id);
+            const container = document.getElementById('project-detail-content');
+            
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:20px;">
+                    <img src="${p.img}" style="width:100%; height:auto; max-height:400px; object-fit:cover; border-radius:12px;">
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+                            <span class="badge badge-blue">${p.status}</span>
+                            <span style="font-size:18px; font-weight:700; color:var(--success);">${p.budget}</span>
+                        </div>
+                        <h1 style="font-size:28px; margin-bottom:10px; line-height:1.2;">${p.title}</h1>
+                        <p style="font-size:16px; line-height:1.6; color:#333;">${p.fullText}</p>
+                    </div>
+                </div>
+            `;
+            navigate('project-detail');
+        }
+
+        
+        
+        async function loadProblemsFromBackend() {
+  const role = localStorage.getItem("userRole");
+
+  if (!role) return;
+
+  const res = await fetch("http://localhost:3000/api/problems", {
+    headers: {
+      "X-User-Role": role
+    }
+  });
+
+  const data = await res.json();
+  db.issues = data.problems;
+  renderIssues();
+}
+
+async function deleteProblem(id) {
+  const role = localStorage.getItem("userRole");
+  const name = localStorage.getItem("userName");
+
+  const res = await fetch(`http://localhost:3000/api/problems/${id}`, {
+    method: "DELETE",
+    headers: {
+      "X-User-Role": role,
+      "X-User-Name": name
+    }
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.message);
+    return;
+  }
+
+  alert("Проблема жойылды");
+  loadProblemsFromBackend();
+}
+
+function confirmDelete(id) {
+  const ok = confirm("Бұл проблеманы жоюға сенімдісіз бе?");
+  if (!ok) return;
+
+  deleteProblem(id);
+}
+
+
+        // FUNCTIONAL: Add New Issue
+        function addNewIssue() {
+            const role = localStorage.getItem('userRole');
+            if(!role) return alert("Алдымен жүйеге кіріңіз!");
+            if(role === 'admin') return alert("Тек тұрғындар мәселе қоса алады.");
+
+            const title = prompt("Мәселенің атауы қандай?");
+            if(title) {
+                const newIssue = {
+                    id: Date.now(),
+                    title: title,
+                    district: "Менің ауданым",
+                    days: 0,
+                    desc: "Бұл жаңадан қосылған мәселе сипаттамасы...",
+                    votes: 0,
+                    lat: 43.25 + (Math.random() * 0.05), // Random location near Almaty
+                    lng: 76.90 + (Math.random() * 0.05),
+                    img: "https://placehold.co/600x400?text=Issue+Image"
+                };
+                db.issues.unshift(newIssue);
+                renderIssues();
+                alert("Мәселе сәтті қосылды!");
+            }
+        }
+
+        function vote(id) {
+            const role = localStorage.getItem('userRole');
+            if(!role) {
+                alert("Дауыс беру үшін жүйеге кіріңіз!");
+                navigate('login');
+                return;
+            }
+            const issue = db.issues.find(x => x.id === id);
+            issue.votes++;
+            renderIssues();
+            
+            // Add to activity log in resident panel
+            if(role === 'resident') {
+                const log = document.getElementById('resident-activity');
+                if(log) {
+                    const li = document.createElement('li');
+                    li.style = "padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;";
+                    li.innerHTML = `<span style="font-size:14px;"><i class="fas fa-vote-yea" style="color: var(--primary); margin-right: 10px;"></i> ${issue.title}</span> <span style="font-size: 12px; color: #888;">Жаңа ғана</span>`;
+                    log.prepend(li);
+                }
+            }
+            alert("Дауысыңыз сәтті қабылданды!");
+        }
+
+        // FUNCTIONAL: Admin Table
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = db.adminRequests.map(r => `
+                <tr>
+                    <td>${r.title}</td>
+                    <td>${r.district}</td>
+                    <td>${r.amount}</td>
+                    <td>${r.status === 'approved' 
+                        ? '<span class="badge badge-green">Мақұлданды</span>' 
+                        : '<span class="badge badge-yellow">Қаралуда</span>'}
+                    </td>
+                    <td>${r.status === 'pending' 
+                        ? `<button class="btn btn-sm btn-primary" onclick="approveRequest(${r.id})">Мақұлдау</button>` 
+                        : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function approveRequest(id) {
+            const item = db.adminRequests.find(x => x.id === id);
+            if(item) {
+                item.status = 'approved';
+                renderAdminTable();
+                alert(`"${item.title}" жобасы сәтті мақұлданды!`);
+            }
+        }
+
+        // --- AUTH LOGIC (LOGIN & REGISTER) ---
+
+        // 1. Login Handler
+        async function handleLogin(event) {
+  event.preventDefault();
+
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const errorEl = document.getElementById("login-error");
+
+  errorEl.textContent = ""; // очистка
+
+  try {
+    const res = await fetch("http://localhost:3000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      errorEl.textContent = data.message;
+      return;
+    }
+
+    performLogin(data.user.role, data.user.name);
+
+  } catch (err) {
+    errorEl.textContent = "Серверге қосыла алмады";
+  }
+}
+
+
+
+        // 2. Register Handler
+        async function handleRegister(event) {
+  event.preventDefault();
+
+  const name = document.getElementById('reg-name').value;
+  const email = document.getElementById('reg-email').value;
+  const password = document.getElementById('reg-password').value;
+  const role = document.getElementById('reg-role').value;
+
+  if (!role) return alert("Рөлді таңдаңыз!");
+
+  try {
+    const res = await fetch("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, role })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message);
+      return;
+    }
+
+    alert("Тіркелу сәтті өтті!");
+    performLogin(data.user.role, data.user.name);
+
+  } catch (err) {
+    alert("Серверге қосыла алмады");
+  }
+}
+
+
+        // Common Login Function
+        function performLogin(role, name) {
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userName', name);
+            
+            updateAuthUI();
+            
+            // Redirect based on role
+            if(role === 'admin') navigate('admin-panel');
+            else if(role === 'volunteer') navigate('volunteer-panel');
+            else navigate('resident-panel');
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userName');
+            window.location.reload();
+        }
+
+        // UI Update
+        function updateAuthUI() {
+            const role = localStorage.getItem('userRole');
+            const name = localStorage.getItem('userName');
+
+            if(role) {
+                document.getElementById('auth-guest').classList.add('hidden');
+                document.getElementById('auth-user').classList.remove('hidden');
+                
+                const roleNames = {'admin': 'Басшы', 'volunteer': 'Волонтер', 'resident': 'Тұрғын'};
+                document.getElementById('user-role-display').innerText = roleNames[role] || role;
+                document.getElementById('user-name-display').innerText = name || "Қолданушы";
+                
+                // Update Personal Cabinet Name
+                const resPanelName = document.getElementById('res-panel-name');
+                if(resPanelName) resPanelName.innerText = name;
+
+                // Show Role Specific Menu Items
+                document.querySelectorAll('[data-role]').forEach(el => {
+                    el.classList.add('hidden');
+                    if(el.dataset.role === role) el.classList.remove('hidden');
+                });
+            }
+        }
+
+        // --- MAP ---
+        function initMap() {
+            if(mapInstance) {
+                mapInstance.invalidateSize(); 
+                return;
+            }
+            
+            mapInstance = L.map('map-area').setView([43.2389, 76.8897], 12);
+            
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(mapInstance);
+
+            const redIcon = L.divIcon({className: 'custom-icon', html: '<i class="fas fa-map-marker-alt" style="color:#DA1E28; font-size:32px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></i>', iconSize: [32, 32], iconAnchor: [16, 32]});
+            const blueIcon = L.divIcon({className: 'custom-icon', html: '<i class="fas fa-map-marker-alt" style="color:#0F62FE; font-size:32px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></i>', iconSize: [32, 32], iconAnchor: [16, 32]});
+
+            db.issues.forEach(i => L.marker([i.lat, i.lng], {icon: redIcon}).addTo(mapInstance).bindPopup(`<b>${i.title}</b><br>${i.desc}`));
+            db.projects.forEach(p => L.marker([p.lat, p.lng], {icon: blueIcon}).addTo(mapInstance).bindPopup(`<b>${p.title}</b><br>Статус: ${p.status}`));
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Трансформациялау және анимациялар</title>
+</head>
+<body>
+    <style>
+        .box{
+            width: 100px;
+            height: 100px;
+            background-color: #4caf50;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 50px;
+            transition: transform 0.5s;
+        }
+
+        .box:hover{
+            transform: scale(1.5) translateX(50px) skew(10deg, 10deg);
+        }
+    </style>
+    
+    <div class="box">Box</div>
+</body>
+
+<body>
+    <style>
+        .animated-box{
+            width: 100px;
+            height: 100px;
+            background-color: #ff5733;
+            color: white;
+            display: flex;
+            justify-items: center;
+            align-items: center;
+            margin: 50px;
+            animation: moveAndRotate 2s infinite;
+        }
+        @keyframes moveAndRotate {
+            0%{
+                transform: translateX(0) rotate(0deg);
+            }
+            50%{
+                transform: translateX(100px) rotate(180deg);
+            }
+            100%{
+                transform: translateX(0) rotate(0deg);
+            }
+        }
+        @media (min-width: 1024px){
+        }
+    </style>
+    
+    
+    <div class="animated-box">Animated Box</div>
+</body>
+</html>

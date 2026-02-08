@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form>
+        <label>Деректерді енгізіңіз</label>
+        <input type="text">
+        <button>енгізу</button>
+
+
+        <textarea>Енгізу</textarea>
+
+        <select>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+        </select>
+    </form>
+</body>
+     <form action="/submit" method="post">
+          <label for="name">Атауы:</label>
+          <input type="text"> 
+          <br>
+          <br>
+          <label for="password">Құпия сөз</label>
+            <input type="password" id="password" name="password">
+            <br>
+            <br>
+            <label for="email">Электронды почта</label>
+            <input type="email"  id="email" name="email">
+            <br>
+            <br>
+            <label for="age">Жасы:</label>
+            <input type="number" id="age" name="age" min="1" max="100">
+            <br><br>
+            ;<label for="туған күн">туған күні </label>
+            <input type="date" id="birthday">
+            <br>
+            <br>
+            <br>
+            <label for="subscribe">Жазылу</label>
+            <input type="checkbox" name="subscribe" id="subscribe">
+            <br><br>
+            <br><br>
+            <label for="male">ер</label>
+            <input type="radio" name="gender" id="male" value="male">
+              <label for="female">әйел</label>
+            <input type="radio" name="gender" id="female" value="female">
+            <br><br><br>
+            <br>
+            <label for="country">ЕЛ</label>
+            <select name="country" id="country">
+                <option value="KZ">KZ</option>
+                <option value="RU">RU</option>
+                <option value="USA">USA</option>
+            </select>
+            <br>
+            <br>
+            <button type="submit">Жіберу</button>
+     </form>
+</html>
