@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+    <meta charset="UTF-8">
+    <title>Жүрек - I Love You</title>
+    <style>
+        body {
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        .heart {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            animation: pulse 1.5s infinite;
+        }
+
+        
+        .text {
+            position: absolute;
+            color: red;
+            font-size: 18px;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+    
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="heart" id="heart"></div>
+
+<script>
+    const heartContainer = document.getElementById('heart');
+    const totalWords = 60; 
+
+    for (let i = 0; i < totalWords; i++) {
+        const span = document.createElement('span');
+        span.className = 'text';
+        span.innerText = 'I love you';
+        
+        
+        const t = (i / totalWords) * 2 * Math.PI;
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        
+        
+        span.style.left = (150 + x * 10) + 'px';
+        span.style.top = (150 + y * 10) + 'px';
+        span.style.transform = `rotate(${t}rad)`;
+
+        heartContainer.appendChild(span);
+    }
+</script>
+
+</body>
+</html>
